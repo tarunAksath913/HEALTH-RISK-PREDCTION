@@ -18,11 +18,21 @@ EPOCHS = 60
 os.makedirs('models', exist_ok=True)
 
 print("STEP 1: Loading Obesity Data...")
+# Define the folder and filename
+DATA_FOLDER = 'datasets'
+FILE_NAME = 'Obesity_dataset.csv'
+
+# Combine them into a full path
+dataset_path = os.path.join(DATA_FOLDER, FILE_NAME)
+
+print("STEP 1: Loading Obesity Data...")
+
 try:
-    # UPDATED: Correct filename
-    df = pd.read_csv('obesity_level_FIXED.csv')
+    df = pd.read_csv(dataset_path)
+    print("✅ Data loaded successfully!")
 except FileNotFoundError:
-    print("❌ Error: Could not find 'obesity_level_FIXED.csv'.")
+    print(f"❌ Error: Could not find '{FILE_NAME}' in the '{DATA_FOLDER}' directory.")
+    print(f"Looked at: {os.path.abspath(dataset_path)}")
     exit()
 
 # --- 2. PREPROCESSING ---

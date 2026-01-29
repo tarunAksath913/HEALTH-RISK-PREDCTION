@@ -17,13 +17,21 @@ EPOCHS = 50
 os.makedirs('models', exist_ok=True)
 
 print("STEP 1: Loading Diabetes Data...")
-# Updated filename to match your upload
-dataset_filename = 'Diabetes_dataset.csv'
+# Define the folder and filename
+DATA_FOLDER = 'datasets'
+FILE_NAME = 'Diabetes_dataset.csv'
+
+# Combine them into a full path
+dataset_path = os.path.join(DATA_FOLDER, FILE_NAME)
+
+print("STEP 1: Loading Diabetes Data...")
 
 try:
-    df = pd.read_csv(dataset_filename)
+    df = pd.read_csv(dataset_path)
+    print("✅ Data loaded successfully!")
 except FileNotFoundError:
-    print(f"❌ Error: Could not find '{dataset_filename}'. Please make sure the file is in the same directory.")
+    print(f"❌ Error: Could not find '{FILE_NAME}' in the '{DATA_FOLDER}' directory.")
+    print(f"Looked at: {os.path.abspath(dataset_path)}")
     exit()
 
 # --- 2. PREPROCESSING (Updated for your specific indicators) ---

@@ -5,55 +5,93 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-import numpy as np
+import joblib  # Added for saving scalers
+import os
 
 # --- 1. CONFIGURATION ---
 BATCH_SIZE = 32
 LEARNING_RATE = 0.001
 EPOCHS = 50
 
+# Ensure models directory exists
+os.makedirs('models', exist_ok=True)
+
 print("STEP 1: Loading Diabetes Data...")
+# Updated filename to match your upload
+dataset_filename = 'Diabetes_dataset.csv'
+
 try:
-    df = pd.read_csv('datasets/diabetes_prediction_dataset.csv')
+    df = pd.read_csv(dataset_filename)
 except FileNotFoundError:
-    print("❌ Error: Could not find 'diabetes_prediction_dataset.csv'.")
+    print(f"❌ Error: Could not find '{dataset_filename}'. Please make sure the file is in the same directory.")
     exit()
 
-# --- 2. PREPROCESSING (Option B: Lifestyle Only) ---
+# --- 2. PREPROCESSING (Updated for your specific indicators) ---
 print("STEP 2: Cleaning & Preparing Data...")
 
-target_column = 'diabetes'
+# 1. Define the exact columns to keep based on your request
+# We keep the target 'Diabetes_binary' + the selected medical/lifestyle indicators.
+# Removed: CholCheck, AnyHealthcare, NoDocbcCost, Education, Income
+columns_to_keep = [
+    'Diabetes_binary', 
+    'HighBP', 
+    'HighChol', 
+    'BMI', 
+    'Smoker', 
+    'Stroke', 
+    'HeartDiseaseorAttack', 
+    'PhysActivity', 
+    'Fruits', 
+    'Veggies', 
+    'HvyAlcoholConsump', 
+    'GenHlth', 
+    'MentHlth', 
+    'PhysHlth', 
+    'DiffWalk', 
+    'Sex', 
+    'Age'
+]
 
-# 1. DROP the medical columns (The "Option B" change)
-# We also drop duplicates if any
+# Filter the dataset to only these columns
+df = df[columns_to_keep].copy()
+
+target_column = 'Diabetes_binary'
+
+# Drop duplicates if any
 df = df.drop_duplicates()
-columns_to_drop = [target_column, 'HbA1c_level', 'blood_glucose_level']
-X = df.drop(columns=columns_to_drop)
+
+# Separate Features (X) and Target (y)
+X = df.drop(columns=[target_column])
 y = df[target_column]
 
-print(f"✅ Training on these features: {list(X.columns)}")
+print(f"✅ Training on {len(X.columns)} features: {list(X.columns)}")
 
 # 2. Encode Text Columns
-# We map 'gender' and 'smoking_history' to numbers
+# Note: Your specific dataset (BRFSS) is mostly numeric already, 
+# but we keep this logic in case you have non-numeric data in the future.
 label_encoders = {}
 for column in X.select_dtypes(include=['object']).columns:
     le = LabelEncoder()
     X[column] = le.fit_transform(X[column])
     label_encoders[column] = le
 
-# 3. Normalize (Scale inputs to be roughly -1 to 1)
+# 3. Normalize (Scale inputs)
 scaler = StandardScaler()
 X = scaler.fit_transform(X)
 
 # 4. Split Data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 5. Class Imbalance Handling (Essential for Diabetes)
-# Most people don't have diabetes, so we tell the model to pay 
-# more attention to the ones who do.
+# 5. Class Imbalance Handling
+# Note: Since you are using the '5050split' dataset, it is likely already balanced.
+# However, this code dynamically calculates weights just in case.
 class_counts = y.value_counts()
+# Ensure we have both classes (0 and 1)
+count_0 = class_counts.get(0.0, 1) # default to 1 to avoid div by zero
+count_1 = class_counts.get(1.0, 1)
+
 weight_for_0 = 1.0
-weight_for_1 = class_counts[0] / class_counts[1]
+weight_for_1 = count_0 / count_1
 weights = torch.tensor([weight_for_0, weight_for_1], dtype=torch.float32)
 print(f"⚖️  Class Weights applied: {weights}")
 
@@ -84,7 +122,7 @@ class DiabetesModel(nn.Module):
             nn.Linear(input_size, 64),
             nn.ReLU(),
             nn.BatchNorm1d(64),
-            nn.Dropout(0.3),  # Increased dropout to prevent overfitting on smaller data
+            nn.Dropout(0.3),
             
             nn.Linear(64, 32),
             nn.ReLU(),
@@ -100,12 +138,12 @@ input_features = X.shape[1]
 num_classes = 2
 model = DiabetesModel(input_features, num_classes)
 
-# We pass the weights to the loss function here
+# Pass weights to loss function
 criterion = nn.CrossEntropyLoss(weight=weights)
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 # --- 5. TRAINING LOOP ---
-print(f"STEP 3: Training on {len(df)} rows with {input_features} features...")
+print(f"STEP 3: Training on {len(df)} rows...")
 
 for epoch in range(EPOCHS):
     model.train()
@@ -129,10 +167,10 @@ with torch.no_grad():
     test_outputs = model(X_test_tensor)
     _, predicted = torch.max(test_outputs, 1)
     
-    # Calculate simple accuracy
+    # Calculate Accuracy
     accuracy = (predicted == y_test_tensor).sum().item() / len(y_test_tensor)
     
-    # Calculate Sensitivity (Recall) - How many actual diabetics did we catch?
+    # Calculate Sensitivity (Recall)
     true_positives = ((predicted == 1) & (y_test_tensor == 1)).sum().item()
     actual_positives = (y_test_tensor == 1).sum().item()
     recall = true_positives / actual_positives if actual_positives > 0 else 0
@@ -142,8 +180,6 @@ with torch.no_grad():
 
 # --- 7. SAVE ---
 torch.save(model.state_dict(), 'models/diabetes_model_pytorch.pt')
-# We also save the scaler so we can scale user input exactly the same way
-import joblib
 joblib.dump(scaler, 'models/diabetes_scaler.pkl')
 joblib.dump(label_encoders, 'models/diabetes_encoders.pkl')
-print("\n✅ Model and Scalers saved!") 
+print("\n✅ Model and Scalers saved!")

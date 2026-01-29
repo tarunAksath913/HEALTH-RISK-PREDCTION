@@ -7,15 +7,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import numpy as np
 import joblib
+import os
 
 # --- 1. CONFIGURATION ---
 BATCH_SIZE = 32
 LEARNING_RATE = 0.001
 EPOCHS = 60
 
+# Ensure models directory exists
+os.makedirs('models', exist_ok=True)
+
 print("STEP 1: Loading Obesity Data...")
 try:
-    df = pd.read_csv('datasets/obesity_level_FIXED.csv')
+    # UPDATED: Correct filename
+    df = pd.read_csv('obesity_level_FIXED.csv')
 except FileNotFoundError:
     print("❌ Error: Could not find 'obesity_level_FIXED.csv'.")
     exit()
@@ -108,7 +113,19 @@ for epoch in range(EPOCHS):
     if (epoch + 1) % 10 == 0:
         print(f"Epoch [{epoch+1}/{EPOCHS}] - Loss: {running_loss/len(train_loader):.4f}")
 
-# --- 6. SAVE ---
+# --- 6. EVALUATION (New Step) ---
+print("\nSTEP 4: Testing...")
+model.eval()
+with torch.no_grad():
+    test_outputs = model(X_test_tensor)
+    _, predicted = torch.max(test_outputs, 1)
+    
+    # Calculate simple accuracy
+    accuracy = (predicted == y_test_tensor).sum().item() / len(y_test_tensor)
+    
+    print(f"🎯 Accuracy: {accuracy * 100:.2f}%")
+
+# --- 7. SAVE ---
 torch.save(model.state_dict(), 'models/obesity_model_pytorch.pt')
 joblib.dump(scaler, 'models/obesity_scaler.pkl')
 joblib.dump(label_encoders, 'models/obesity_encoders.pkl')

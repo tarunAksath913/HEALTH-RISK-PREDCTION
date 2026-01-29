@@ -194,18 +194,35 @@ export default function CreateProfile() {
     setFormData(prev => ({ ...prev, [name]: finalValue }));
   };
 
-  const handleSubmit = async () => {
-    // Double check validation before submitting
-    if (!isFormValid()) {
-      alert("Please fill in all required fields (Age, Height, Weight).");
-      return;
-    }
-
+const handleSubmit = async () => {
     setLoading(true);
-    setTimeout(() => {
-      // Navigate to dashboard
-      navigate("/dashboard", { state: { profileData: formData } });
-    }, 1500);
+    try {
+      // 1. Call your Node.js Backend
+      const response = await fetch('http://localhost:5000/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
+      
+      const result = await response.json();
+      console.log("AI Prediction:", result);
+      
+      // 2. Navigate to Dashboard with BOTH Prediction and User Data
+      navigate("/dashboard", { 
+        state: { 
+          prediction: result,      // The AI result
+          profileData: formData    // The User's input (weight, etc.)
+        } 
+      });
+      
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to connect to AI server. Check console.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

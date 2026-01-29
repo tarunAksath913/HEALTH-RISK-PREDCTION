@@ -19,10 +19,8 @@ const Icons = {
 
 // --- Helper: Convert Obesity String to Dashboard Visuals ---
 const getObesityData = (levelString) => {
-  // Default fallback
   if (!levelString) return { score: 50, category: "Unknown", colorParams: { bg: "bg-gray-100", badge: "bg-gray-600", progress: "bg-gray-500" } };
   
-  // Mapping AI output to UI colors and score
   const map = {
     'Insufficient_Weight': { score: 20, category: "Underweight", colorParams: { bg: "bg-blue-100", badge: "bg-blue-600", progress: "bg-blue-500" } },
     'Normal_Weight':       { score: 5,  category: "Normal",      colorParams: { bg: "bg-green-100", badge: "bg-green-600", progress: "bg-green-500" } },
@@ -51,7 +49,6 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 // --- Components ---
-
 const ProfileEditModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   return (
@@ -64,14 +61,11 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
         <form onSubmit={(e) => { e.preventDefault(); onClose(); }} className="space-y-4">
           <div className="flex flex-col items-center gap-2 mb-4">
             <div className="relative group cursor-pointer">
-              <div className="h-20 w-20 rounded-full bg-teal-100 border-2 border-teal-200 flex items-center justify-center text-teal-700 font-bold text-2xl">JD</div>
-              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white"><Icons.Camera /></div>
+              <div className="h-20 w-20 rounded-full bg-teal-100 border-2 border-teal-200 flex items-center justify-center text-teal-700 font-bold text-2xl">U</div>
             </div>
-            <span className="text-xs text-teal-600 font-medium cursor-pointer">Change Photo</span>
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label><input type="text" defaultValue="John Doe" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-500" /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" defaultValue="john.doe@example.com" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-500" /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">New Password</label><input type="password" placeholder="Leave blank to keep current" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-500" /></div>
+          <div><label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label><input type="text" defaultValue="User" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-500" /></div>
+          <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" defaultValue="user@example.com" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-500" /></div>
           <div className="pt-4 flex gap-3">
              <button type="button" onClick={onClose} className="flex-1 rounded-md border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
              <button type="submit" className="flex-1 rounded-md bg-teal-600 py-2 text-sm font-medium text-white hover:bg-teal-700">Save Changes</button>
@@ -82,19 +76,15 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
   );
 };
 
-const DashboardHeader = () => {
+const DashboardHeader = ({ name = "User" }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [hasUnread, setHasUnread] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const notifRef = useRef(null);
   const settingsRef = useRef(null);
 
-  const handleBellClick = () => { setShowNotifications(!showNotifications); setShowSettings(false); if (hasUnread) setHasUnread(false); };
+  const handleBellClick = () => { setShowNotifications(!showNotifications); setShowSettings(false); };
   const handleSettingsClick = () => { setShowSettings(!showSettings); setShowNotifications(false); };
-  const handleEditProfileClick = () => { setShowProfileEdit(true); setShowSettings(false); };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -117,14 +107,12 @@ const DashboardHeader = () => {
             <div className="relative" ref={notifRef}>
               <button onClick={handleBellClick} className="relative p-1 rounded-full hover:bg-gray-100 transition focus:outline-none">
                 <Icons.BellOutline />
-                {hasUnread && notificationsEnabled && <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full border border-white"></span>}
+                <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-red-500 rounded-full border border-white"></span>
               </button>
               {showNotifications && (
                 <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
-                  <div className="px-4 py-3 border-b bg-gray-50 flex justify-between items-center"><span className="text-sm font-bold text-gray-800">Notifications</span><span className="text-xs text-teal-600 cursor-pointer hover:underline">Mark all read</span></div>
-                  {notificationsEnabled ? (
-                    <ul className="max-h-64 overflow-y-auto">{MOCK_NOTIFICATIONS.map((notif) => (<li key={notif.id} className={`px-4 py-3 border-b hover:bg-gray-50 transition cursor-pointer ${notif.unread ? "bg-blue-50/50" : ""}`}><p className="text-sm text-gray-800">{notif.text}</p><p className="text-xs text-gray-400 mt-1">{notif.time}</p></li>))}</ul>
-                  ) : (<div className="p-6 text-center text-sm text-gray-500">Notifications paused.</div>)}
+                  <div className="px-4 py-3 border-b bg-gray-50 flex justify-between items-center"><span className="text-sm font-bold text-gray-800">Notifications</span></div>
+                  <ul className="max-h-64 overflow-y-auto">{MOCK_NOTIFICATIONS.map((notif) => (<li key={notif.id} className="px-4 py-3 border-b hover:bg-gray-50 transition cursor-pointer"><p className="text-sm text-gray-800">{notif.text}</p><p className="text-xs text-gray-400 mt-1">{notif.time}</p></li>))}</ul>
                 </div>
               )}
             </div>
@@ -134,18 +122,15 @@ const DashboardHeader = () => {
                 <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
                   <div className="px-4 py-3 border-b bg-gray-50"><p className="text-sm font-bold text-gray-900">Settings</p></div>
                   <div className="p-2 space-y-1">
-                    <button onClick={handleEditProfileClick} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition"><Icons.User /><span>Edit Profile</span></button>
-                    <div onClick={() => setDarkMode(!darkMode)} className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition cursor-pointer"><div className="flex items-center gap-3"><Icons.Moon /><span>Dark Theme</span></div><div className={`w-9 h-5 rounded-full relative transition-colors ${darkMode ? 'bg-teal-600' : 'bg-gray-300'}`}><div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${darkMode ? 'left-4.5 translate-x-0.5' : 'left-0.5'}`}></div></div></div>
-                    <div onClick={() => setNotificationsEnabled(!notificationsEnabled)} className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition cursor-pointer"><div className="flex items-center gap-3"><Icons.Bell /><span>Notifications</span></div><div className={`w-9 h-5 rounded-full relative transition-colors ${notificationsEnabled ? 'bg-teal-600' : 'bg-gray-300'}`}><div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${notificationsEnabled ? 'left-4.5 translate-x-0.5' : 'left-0.5'}`}></div></div></div>
-                    <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition"><Icons.Help /><span>Help & Support</span></a>
+                    <button onClick={() => {setShowProfileEdit(true); setShowSettings(false);}} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition"><Icons.User /><span>Edit Profile</span></button>
+                    <Link to="/" className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition font-medium"><Icons.Logout /><span>Log Out</span></Link>
                   </div>
-                  <div className="border-t p-2"><Link to="/" className="flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition font-medium"><Icons.Logout /><span>Log Out</span></Link></div>
                 </div>
               )}
             </div>
-            <div onClick={handleSettingsClick} className="flex items-center gap-3 pl-4 border-l cursor-pointer hover:opacity-80 transition">
-              <div className="text-right hidden md:block"><p className="text-sm font-semibold text-gray-900">John Doe</p><p className="text-xs text-gray-500">Free Plan</p></div>
-              <div className="h-10 w-10 rounded-full bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 font-bold">JD</div>
+            <div className="flex items-center gap-3 pl-4 border-l">
+              <div className="text-right hidden md:block"><p className="text-sm font-semibold text-gray-900">{name}</p></div>
+              <div className="h-10 w-10 rounded-full bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 font-bold">{name.charAt(0)}</div>
             </div>
           </div>
         </div>
@@ -165,12 +150,7 @@ const StatCard = ({ label, value, subtext, icon }) => (
 const RiskCard = ({ title, score, category, colorParams, recommendation }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   useEffect(() => {
-    let start = 0;
-    const end = score;
-    const duration = 2000;
-    const incrementTime = 20;
-    const totalSteps = duration / incrementTime;
-    const incrementValue = end / totalSteps;
+    let start = 0; const end = score; const duration = 2000; const incrementTime = 20; const totalSteps = duration / incrementTime; const incrementValue = end / totalSteps;
     const timer = setInterval(() => { start += incrementValue; if (start >= end) { setAnimatedScore(end); clearInterval(timer); } else { setAnimatedScore(Math.floor(start)); } }, incrementTime);
     return () => clearInterval(timer);
   }, [score]);
@@ -179,7 +159,7 @@ const RiskCard = ({ title, score, category, colorParams, recommendation }) => {
     <div className="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 transition hover:shadow-md">
       <div className={`${colorParams.bg} p-6 text-gray-900 relative`}>
         <div className="flex items-start justify-between relative z-10"><h3 className="text-sm font-bold uppercase tracking-wide opacity-90">{title}</h3><span className={`rounded-full px-3 py-1 text-xs font-bold uppercase text-white ${colorParams.badge} shadow-sm`}>{category}</span></div>
-        <div className="mt-4 flex items-baseline gap-1 relative z-10"><span className="text-5xl font-extrabold text-gray-900">{animatedScore}%</span></div>
+        <div className="mt-4 flex items-baseline gap-1 relative z-10"><span className="text-5xl font-extrabold text-gray-900">{Math.round(animatedScore)}%</span></div>
         <div className="relative mt-4 h-2 w-full rounded-full bg-white/40 z-10 overflow-hidden"><div className={`absolute left-0 top-0 h-full rounded-full ${colorParams.progress} transition-all ease-out duration-[2000ms]`} style={{ width: `${animatedScore}%` }} /></div>
       </div>
       <div className="bg-white p-6"><h4 className="font-semibold text-gray-900 text-sm">Action Plan</h4><ul className="mt-3 space-y-2">{recommendation.map((rec, index) => (<li key={index} className="flex items-center gap-2 text-xs text-gray-600"><div className="w-1.5 h-1.5 rounded-full bg-teal-500"></div>{rec}</li>))}</ul></div>
@@ -201,48 +181,52 @@ const ActionCard = ({ title, desc, icon, to, colorClass }) => (
 export default function Dashboard() {
   const location = useLocation();
   const [aiData, setAiData] = useState(null);
+  const [userStats, setUserStats] = useState({ weight: "75", name: "User" });
 
   useEffect(() => {
-    // 1. Get prediction from Router State
-    if (location.state && location.state.prediction) {
-      const pred = location.state.prediction;
-      
-      // 2. Process Data for UI
-      const obesityMeta = getObesityData(pred.obesity?.obesity_level);
-      const diabetesMeta = getDiabetesData(pred.diabetes?.risk_score);
+    // Check if we have state from the Router
+    if (location.state) {
+      // 1. Set User Profile Data (Inputs)
+      if (location.state.profileData) {
+        setUserStats({
+          weight: location.state.profileData.weight || "75",
+          name: "User" // Default name since form doesn't ask for it yet
+        });
+      }
 
-      setAiData({
-        diabetes: {
-          score: pred.diabetes?.risk_score || 0,
-          ...diabetesMeta
-        },
-        obesity: {
-          rawLevel: pred.obesity?.obesity_level,
-          ...obesityMeta
-        }
-      });
+      // 2. Set Prediction Data (Outputs)
+      if (location.state.prediction) {
+        const pred = location.state.prediction;
+        const obesityMeta = getObesityData(pred.obesity?.obesity_level);
+        const diabetesMeta = getDiabetesData(pred.diabetes?.risk_score);
+
+        setAiData({
+          diabetes: { score: pred.diabetes?.risk_score || 0, ...diabetesMeta },
+          obesity: { rawLevel: pred.obesity?.obesity_level, ...obesityMeta }
+        });
+      }
     }
   }, [location]);
 
-  // Fallback if no data (e.g., user went straight to /dashboard)
+  // Demo Fallback (if user goes directly to dashboard)
   const displayData = aiData || {
-    diabetes: { score: 65, category: "Moderate (Demo)", colorParams: { bg: "bg-orange-100", badge: "bg-orange-600", progress: "bg-orange-500" }, recs: ["Demo Mode: Calculate Profile first"] },
-    obesity: { score: 40, category: "Normal (Demo)", colorParams: { bg: "bg-blue-100", badge: "bg-blue-600", progress: "bg-blue-500" }, recs: ["Demo Mode: Calculate Profile first"] }
+    diabetes: { score: 0, category: "No Data", colorParams: { bg: "bg-gray-100", badge: "bg-gray-500", progress: "bg-gray-400" }, recs: ["Please calculate your profile first."] },
+    obesity: { score: 0, category: "No Data", colorParams: { bg: "bg-gray-100", badge: "bg-gray-500", progress: "bg-gray-400" }, recs: ["Please calculate your profile first."] }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <DashboardHeader />
+      <DashboardHeader name={userStats.name} />
       <main className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h1 className="text-2xl font-bold text-gray-900">Good Morning, John! 👋</h1>
-          <p className="text-sm text-gray-500">{aiData ? "Here is your personalized AI analysis." : "Please calculate your risk profile to see real data."}</p>
+          <h1 className="text-2xl font-bold text-gray-900">Good Morning, {userStats.name}! 👋</h1>
+          <p className="text-sm text-gray-500">{aiData ? "Here is your personalized AI analysis." : "You are in Demo Mode. Please calculate your profile to see real results."}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-          <StatCard label="Current Weight" value="75 kg" subtext="-2kg this month" icon="⚖️" />
-          <StatCard label="Daily Calories" value="1,240" subtext="of 2,000 goal" icon={<Icons.Fire />} />
-          <StatCard label="Login Streak" value="5 Days" subtext="Keep it up!" icon="🏆" />
+          <StatCard label="Current Weight" value={`${userStats.weight} kg`} subtext="From your profile" icon="⚖️" />
+          <StatCard label="Daily Calories" value="1,240" subtext="Recommended" icon={<Icons.Fire />} />
+          <StatCard label="Login Streak" value="1 Day" subtext="Start your journey!" icon="🏆" />
         </div>
 
         <div className="mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
@@ -256,14 +240,14 @@ export default function Dashboard() {
               score={displayData.obesity.score}
               category={displayData.obesity.category}
               colorParams={displayData.obesity.colorParams}
-              recommendation={["Maintain balanced diet", "Regular cardio (150m/week)", "Monitor daily caloric intake"]}
+              recommendation={aiData ? ["Maintain balanced diet", "Regular cardio (150m/week)"] : displayData.obesity.recs}
             />
             <RiskCard 
               title="Diabetes Risk"
               score={displayData.diabetes.score}
               category={displayData.diabetes.category}
               colorParams={displayData.diabetes.colorParams}
-              recommendation={displayData.diabetes.recs}
+              recommendation={aiData ? displayData.diabetes.recs : displayData.diabetes.recs}
             />
           </div>
         </div>
@@ -271,9 +255,9 @@ export default function Dashboard() {
         <div className="animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Your Tools</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ActionCard to="/meal-plan" title="Meal Plan" desc="View your daily personalized recipes and log your intake." icon={<Icons.Meal />} colorClass="bg-orange-100 text-orange-600" />
-            <ActionCard to="/exercise-plan" title="Exercise Plan" desc="Track your daily workouts and watch technique videos." icon={<Icons.Run />} colorClass="bg-blue-100 text-blue-600" />
-            <ActionCard to="/progress" title="View Progress" desc="Analyze your health trends and weight loss journey." icon={<Icons.Chart />} colorClass="bg-purple-100 text-purple-600" />
+            <ActionCard to="/meal-plan" title="Meal Plan" desc="View your daily personalized recipes." icon={<Icons.Meal />} colorClass="bg-orange-100 text-orange-600" />
+            <ActionCard to="/exercise-plan" title="Exercise Plan" desc="Track your daily workouts." icon={<Icons.Run />} colorClass="bg-blue-100 text-blue-600" />
+            <ActionCard to="/progress" title="View Progress" desc="Analyze your health trends." icon={<Icons.Chart />} colorClass="bg-purple-100 text-purple-600" />
           </div>
         </div>
       </main>

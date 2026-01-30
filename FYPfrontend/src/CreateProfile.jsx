@@ -53,6 +53,10 @@ const Checkbox = ({ label, name, checked, onChange }) => (
 const StepOne = ({ data, onChange }) => (
   <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
     <h3 className="text-lg font-medium text-teal-800 border-b pb-2">Basic Information</h3>
+    <div className="space-y-4">
+      <Input label="Full Name" name="fullName" value={data.fullName} onChange={onChange} placeholder="John Doe" />
+      <Input label="Email Address" name="email" type="email" value={data.email} onChange={onChange} placeholder="john@example.com" />
+    </div>
     <div className="grid grid-cols-2 gap-4">
       <Input label="Age" name="age" type="number" min="1" max="120" value={data.age} onChange={onChange} placeholder="e.g. 25" />
       <Select label="Gender" name="gender" value={data.gender} onChange={onChange} options={["Male", "Female"]} />
@@ -148,7 +152,7 @@ export default function CreateProfile() {
   // Initialize state with all 25 fields
   const [formData, setFormData] = useState({
     // Step 1: Demographics
-    age: "", gender: "Male", height: "", weight: "", bmi: "", family_history: false,
+    fullName: "", email: "", age: "", gender: "Male", height: "", weight: "", bmi: "", family_history: false,
     
     // Step 2: Medical
     highBP: false, highChol: false, stroke: false, heartDisease: false, diffWalk: false,
@@ -167,6 +171,8 @@ export default function CreateProfile() {
   // Returns true only if essential fields have real numbers
   const isFormValid = () => {
     return (
+      formData.fullName !== "" &&
+      formData.email !== "" &&
       formData.age !== "" &&
       formData.height !== "" &&
       formData.weight !== "" &&
